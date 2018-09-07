@@ -1,0 +1,152 @@
+#!/bin/sh
+
+env=$1
+tool=$2
+
+install() {
+  curl -o- https://raw.githubusercontent.com/reputation-network/rey-cli/master/bin/rey-cli-install.sh | sh
+  exit
+}
+
+show_version() {
+  echo "rey-cli v0.1.0"
+  exit
+}
+
+show_usage() {
+  echo "Usage: rey-cli (dev|test|custom) (ui|gatekeeper|verifier|node) [OPTIONS]"
+  echo "   or: rey-cli update"
+  echo "Runs a REY tool in the specified environment, or update rey-cli."
+  echo
+  echo "Environment:"
+  echo "  dev           set development environment (node URL can be overridden, default is http://localhost:8545)"
+  echo "  test          set test environment (node URL is required)"
+  echo "  custom        set custom environment (node URL, Smart Contract address, and Registry address are required)"
+  echo
+  echo "Tool to run:"
+  echo "  ui            run REY Web UI"
+  echo "  gatekeeper    run REY Gatekeeper"
+  echo "  verifier      run REY Verifier"
+  echo "  node          run Blockchain node (only in development environment)"
+  echo
+  echo "Options:"
+  echo "  -p PORT       specify which port the tool will listen to"
+  echo "  -n URL        blockchain node URL to be used by the tools (ignored when launching \"node\" tool)"
+  echo "  -s ADDRESS    blockchain address where to find the deployed REY Smart Contract (ignored when launching \"node\" tool)"
+  echo "  -r ADDRESS    blockchain address where to find the deployed REY Registry (ignored when launching \"node\" tool)"
+  echo "  -e KEY=VALUE  environment variable to be passed to the tool as a key/value pair"
+  echo "  -h            show this help"
+  echo "  -v            show version"
+  echo
+  echo "See full REY docs at <https://rey.rtfd.io>."
+  exit 1
+}
+
+show_config() {
+  echo "Using ${env} environment"
+  echo "Blockchain Node URL:    ${node}"
+  echo "Smart Contract address: ${sc}"
+  echo "Registry address:       ${re}"
+}
+
+OPTIND=3
+
+while getopts ":e::n::s::r::p::hv" opt; do
+  case $opt in
+  e)
+    vars="$vars -e $OPTARG"
+    ;;
+  n)
+    node="$OPTARG"
+    ;;
+  s)
+    sc_opt="$OPTARG"
+    ;;
+  r)
+    re_opt="$OPTARG"
+    ;;
+  p)
+    port="$OPTARG"
+    ;;
+  h)
+    show_usage
+    ;;
+  v)
+    show_version
+    ;;
+  \?)
+    echo "Error: invalid option -$OPTARG." >&2
+    echo
+    show_usage
+    ;;
+  :)
+    echo "Error: option -$OPTARG requires an argument." >&2
+    echo
+    show_usage
+    ;;
+  esac
+done
+
+if test "$env" = 'dev' ; then
+  if test -z $node; then
+    node='http://localhost:8545'
+  fi
+  sc='0x76C19376b275A5d77858c6F6d5322311eEb92cf5'
+  re='0x556ED3bEaF6b3dDCb1562d3F30f79bF86fFC05B9'
+elif test "$env" = 'test' ; then
+  sc='0x3432431'
+  re='0x4353453'
+elif test "$env" = 'custom' ; then
+  sc="$sc_opt"
+  re="$re_opt"
+elif test "$env" = 'update' ; then
+  install
+else
+  show_usage
+fi
+
+if test -z $node; then
+  echo "Error: Missing node URL. Use -n URL." >&2
+  exit 1
+fi
+if test -z $re; then
+  echo "Error: Missing Registry address. Use -r ADDRESS." >&2
+  exit 1
+fi
+if test -z $sc; then
+  echo "Error: Missing Smart Contract address. Use -s ADDRESS." >&2
+  exit 1
+fi
+
+if test "$tool" = 'ui'; then
+  if test -z "$port"; then
+    port=8080
+  fi
+  show_config
+  docker run -it --rm -p 10000:${port} -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/ui
+elif test "$tool" = 'gatekeeper'; then
+  if test -z "$port"; then
+    port=8081
+  fi
+  show_config
+  docker run -it --rm -p 10000:${port} -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
+elif test "$tool" = 'verifier'; then
+  if test -z "$port"; then
+    port=8082
+  fi
+  show_config
+  docker run -it --rm -p 10000:${port} -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/verifier
+elif test "$tool" = 'node'; then
+  if test "$env" != 'dev'; then
+    echo "Error: Blockchain node requires development environment." >&2
+    exit 1
+  fi
+  if test -z "$port"; then
+    port=8545
+  fi
+  node="http://localhost:$port"
+  show_config
+  docker run -it --rm -p 8545:${port} -p 8546:8546 ${vars} reputationnetwork/node
+else
+  show_usage
+fi
