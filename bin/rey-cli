@@ -123,19 +123,19 @@ if test "$tool" = 'ui'; then
     port=8080
   fi
   show_config
-  docker run -it --rm -p 10000:${port} -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/ui
+  docker run -it --rm -p ${port}:8080 -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/ui
 elif test "$tool" = 'gatekeeper'; then
   if test -z "$port"; then
     port=8081
   fi
   show_config
-  docker run -it --rm -p 10000:${port} -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
+  docker run -it --rm -p ${port}:8080 -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
 elif test "$tool" = 'verifier'; then
   if test -z "$port"; then
     port=8082
   fi
   show_config
-  docker run -it --rm -p 10000:${port} -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/verifier
+  docker run -it --rm -p ${port}:8080 -e NODE_URL=${node} -e SMART_CONTRACT_ADDRESS=${sc} -e REGISTRY_ADDRESS=${re} ${vars} reputationnetwork/verifier
 elif test "$tool" = 'node'; then
   if test "$env" != 'dev'; then
     echo "Error: Blockchain node requires development environment." >&2
