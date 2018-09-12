@@ -14,7 +14,7 @@ show_version() {
 }
 
 show_usage() {
-  echo "Usage: rey-cli (dev|test|custom) (ui|gatekeeper|verifier|node) [OPTIONS]"
+  echo "Usage: rey-cli (dev|test|custom) (ui|gatekeeper|verifier|node|cmd) [OPTIONS] [-- CMD_ARGS]"
   echo "   or: rey-cli update"
   echo "Runs a REY tool in the specified environment, or update rey-cli."
   echo
@@ -28,6 +28,7 @@ show_usage() {
   echo "  gatekeeper    run REY Gatekeeper"
   echo "  verifier      run REY Verifier"
   echo "  node          run Blockchain node (only in development environment)"
+  echo "  cmd           run a one-off REY command, passing CMD_ARGS as arguments"
   echo
   echo "Options:"
   echo "  -p PORT       specify which port the tool will listen to"
@@ -87,6 +88,9 @@ while getopts ":e::n::s::r::p::hv" opt; do
   esac
 done
 
+shift $(expr $OPTIND - 1)
+cmd_args=$*
+
 if test "$env" = 'dev' ; then
   if test -z $node; then
     node='http://localhost:8545'
@@ -123,19 +127,19 @@ if test "$tool" = 'ui'; then
     port=8080
   fi
   show_config
-  docker run -it --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/ui
+  docker run -it --network host --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/ui
 elif test "$tool" = 'gatekeeper'; then
   if test -z "$port"; then
     port=8081
   fi
   show_config
-  docker run -it --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
+  docker run -it --network host --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
 elif test "$tool" = 'verifier'; then
   if test -z "$port"; then
     port=8082
   fi
   show_config
-  docker run -it --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/verifier
+  docker run -it --network host --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/verifier
 elif test "$tool" = 'node'; then
   if test "$env" != 'dev'; then
     echo "Error: Blockchain node requires development environment." >&2
@@ -146,7 +150,10 @@ elif test "$tool" = 'node'; then
   fi
   node="http://localhost:$port"
   show_config
-  docker run -it --rm -p 8545:${port} -p 8546:8546 ${vars} reputationnetwork/node
+  docker run -it --network host --rm -p ${port}:8545 -p 8546:8546 ${vars} reputationnetwork/node
+elif test "$tool" = 'cmd'; then
+  show_config
+  docker run -it --network host --rm -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/cmd $cmd_args
 else
   show_usage
 fi
