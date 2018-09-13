@@ -127,19 +127,19 @@ if test "$tool" = 'ui'; then
     port=8080
   fi
   show_config
-  docker run -it --network host --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/ui
+  docker run -it --network host --rm -p ${port}:8080 -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/ui
 elif test "$tool" = 'gatekeeper'; then
   if test -z "$port"; then
     port=8081
   fi
   show_config
-  docker run -it --network host --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
+  docker run -it --network host --rm -p ${port}:8080 -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/gatekeeper
 elif test "$tool" = 'verifier'; then
   if test -z "$port"; then
     port=8082
   fi
   show_config
-  docker run -it --network host --rm -p ${port}:8080 -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/verifier
+  docker run -it --network host --rm -p ${port}:8080 -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/verifier
 elif test "$tool" = 'node'; then
   if test "$env" != 'dev'; then
     echo "Error: Blockchain node requires development environment." >&2
@@ -153,7 +153,7 @@ elif test "$tool" = 'node'; then
   docker run -it --network host --rm -p ${port}:8545 -p 8546:8546 ${vars} reputationnetwork/node
 elif test "$tool" = 'cmd'; then
   show_config
-  docker run -it --network host --rm -e ETH_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/cmd $cmd_args
+  docker run -it --network host --rm -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/cmd $cmd_args
 else
   show_usage
 fi
