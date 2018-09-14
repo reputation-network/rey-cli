@@ -5,6 +5,7 @@ tool=$2
 
 install() {
   curl -o- https://raw.githubusercontent.com/reputation-network/rey-cli/master/bin/rey-cli-install.sh | sh
+  echo
   rey-cli pull
   exit
 }
@@ -15,6 +16,7 @@ show_version() {
 }
 
 pull() {
+  echo Updating docker images...
   docker pull reputationnetwork/gatekeeper
   docker pull reputationnetwork/cmd
   docker pull reputationnetwork/node
