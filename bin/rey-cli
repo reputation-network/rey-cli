@@ -5,6 +5,7 @@ tool=$2
 
 install() {
   curl -o- https://raw.githubusercontent.com/reputation-network/rey-cli/master/bin/rey-cli-install.sh | sh
+  rey-cli pull
   exit
 }
 
@@ -13,10 +14,18 @@ show_version() {
   exit
 }
 
+pull() {
+  docker pull reputationnetwork/gatekeeper
+  docker pull reputationnetwork/cmd
+  docker pull reputationnetwork/node
+  exit
+}
+
 show_usage() {
   echo "Usage: rey-cli (dev|test|custom) (ui|gatekeeper|verifier|node|cmd) [OPTIONS] [-- CMD_ARGS]"
   echo "   or: rey-cli update"
-  echo "Runs a REY tool in the specified environment, or update rey-cli."
+  echo "   or: rey-cli pull"
+  echo "Runs a REY tool in the specified environment, update rey-cli, or pull required docker images."
   echo
   echo "Environment:"
   echo "  dev           set development environment (node URL can be overridden, default is http://localhost:8545)"
@@ -24,7 +33,6 @@ show_usage() {
   echo "  custom        set custom environment (node URL, Smart Contract address, and Registry address are required)"
   echo
   echo "Tool to run:"
-  echo "  ui            run REY Web UI"
   echo "  gatekeeper    run REY Gatekeeper"
   echo "  verifier      run REY Verifier"
   echo "  node          run Blockchain node (only in development environment)"
@@ -105,6 +113,8 @@ elif test "$env" = 'custom' ; then
   re="$re_opt"
 elif test "$env" = 'update' ; then
   install
+elif test "$env" = 'pull' ; then
+  pull
 else
   show_usage
 fi
@@ -122,13 +132,7 @@ if test -z $sc; then
   exit 1
 fi
 
-if test "$tool" = 'ui'; then
-  if test -z "$port"; then
-    port=8080
-  fi
-  show_config
-  docker run -it --network host --rm -e PORT=${port} -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/ui
-elif test "$tool" = 'gatekeeper'; then
+if test "$tool" = 'gatekeeper'; then
   if test -z "$port"; then
     port=8081
   fi
@@ -150,7 +154,7 @@ elif test "$tool" = 'node'; then
   fi
   node="http://localhost:$port"
   show_config
-  docker run -it --network host --rm ${vars} reputationnetwork/node # FIXME: Support this params --rpcport ${port} --wsport 8546
+  docker run -it --network host --rm ${vars} reputationnetwork/node # FIXME: Support these params --rpcport ${port} --wsport 8546
 elif test "$tool" = 'cmd'; then
   show_config
   docker run -it --network host --rm -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/cmd $cmd_args
