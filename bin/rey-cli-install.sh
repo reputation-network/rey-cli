@@ -17,7 +17,7 @@ rc=$?
 if test "$rc" = 0 ; then
   echo "Type rey-cli for more information."
 else
-  echo "\n"'export PATH="$PATH:~/.local/bin"' >> ~/.profile
-  echo "\n"'export PATH="$PATH:~/.local/bin"' >> ~/.zprofile
+  echo "\n"'export PATH="$PATH:$HOME/.local/bin"' >> ~/.profile
+  echo "\n"'export PATH="$PATH:$HOME/.local/bin"' >> ~/.zprofile
   echo '~/.local/bin is not in your PATH. Login again, then type rey-cli for more information.'
 fi
