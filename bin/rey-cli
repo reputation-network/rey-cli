@@ -20,6 +20,7 @@ pull() {
   docker pull reputationnetwork/gatekeeper
   docker pull reputationnetwork/cmd
   docker pull reputationnetwork/node
+  docker pull reputationnetwork/verifier
   exit
 }
 
