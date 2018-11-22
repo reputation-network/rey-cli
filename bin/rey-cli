@@ -18,15 +18,15 @@ show_version() {
 pull() {
   echo Updating docker images...
   docker pull reputationnetwork/gatekeeper
-  docker pull reputationnetwork/cmd
-  docker pull reputationnetwork/node
   docker pull reputationnetwork/verifier
   docker pull reputationnetwork/explorer
+  docker pull reputationnetwork/node
+  docker pull reputationnetwork/cmd
   exit
 }
 
 show_usage() {
-  echo "Usage: rey-cli (dev|test|custom) (gatekeeper|verifier|explorer|node|cmd) [OPTIONS] [-- CMD_ARGS]"
+  echo "Usage: rey-cli (dev|test|custom) (gatekeeper|verifier|explorer|node|cmd) [OPTIONS] [CMD_ARGS]"
   echo "   or: rey-cli update"
   echo "   or: rey-cli pull"
   echo "Runs a REY tool in the specified environment, update rey-cli, or pull required docker images."
