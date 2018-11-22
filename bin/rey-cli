@@ -21,11 +21,12 @@ pull() {
   docker pull reputationnetwork/cmd
   docker pull reputationnetwork/node
   docker pull reputationnetwork/verifier
+  docker pull reputationnetwork/explorer
   exit
 }
 
 show_usage() {
-  echo "Usage: rey-cli (dev|test|custom) (ui|gatekeeper|verifier|node|cmd) [OPTIONS] [-- CMD_ARGS]"
+  echo "Usage: rey-cli (dev|test|custom) (gatekeeper|verifier|explorer|node|cmd) [OPTIONS] [-- CMD_ARGS]"
   echo "   or: rey-cli update"
   echo "   or: rey-cli pull"
   echo "Runs a REY tool in the specified environment, update rey-cli, or pull required docker images."
@@ -38,6 +39,7 @@ show_usage() {
   echo "Tool to run:"
   echo "  gatekeeper    run REY Gatekeeper"
   echo "  verifier      run REY Verifier"
+  echo "  explorer      run REY Explorer"
   echo "  node          run Blockchain node (only in development environment)"
   echo "  cmd           run a one-off REY command, passing CMD_ARGS as arguments"
   echo
@@ -147,6 +149,12 @@ elif test "$tool" = 'verifier'; then
   fi
   show_config
   docker run -it --network host --rm -e PORT=${port} -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/verifier
+elif test "$tool" = 'explorer'; then
+  if test -z "$port"; then
+    port=8083
+  fi
+  show_config
+  docker run -it --network host --rm -e PORT=${port} -e BLOCKCHAIN_NODE_URL=${node} -e REY_CONTRACT_ADDRESS=${sc} -e REGISTRY_CONTRACT_ADDRESS=${re} ${vars} reputationnetwork/explorer
 elif test "$tool" = 'node'; then
   if test "$env" != 'dev'; then
     echo "Error: Blockchain node requires development environment." >&2
